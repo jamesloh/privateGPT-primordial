@@ -9,6 +9,7 @@ import chromadb
 import os
 import argparse
 import time
+from datetime import datetime
 
 if not load_dotenv():
     print("Could not load .env file or it is empty. Please check if it exists and is readable.")
@@ -25,7 +26,7 @@ target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',4))
 
 from constants import CHROMA_SETTINGS
 
-def main():
+def main(log_fp):
     # Parse the command line arguments
     args = parse_arguments()
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
@@ -65,10 +66,19 @@ def main():
         print(f"\n> Answer (took {round(end - start, 2)} s.):")
         print(answer)
 
+        print("\n\n> Question:", file=log_fp)
+        print(query, file=log_fp)
+        print("\n> Answer:", file=log_fp)
+        print(answer, file=log_fp)
+
+
         # Print the relevant sources used for the answer
         for document in docs:
-            print("\n> " + document.metadata["source"] + ":")
-            print(document.page_content)
+            print("\n> " + document.metadata["source"] + ":" , file=log_fp )
+            print(document.page_content, file=log_fp)
+
+        log_fp.flush()
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='privateGPT: Ask questions to your documents without an internet connection, '
@@ -83,5 +93,9 @@ def parse_arguments():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
-    main()
+try:
+    log_file = f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    log_fp = open(log_file, "a+")
+    main(log_fp)
+finally:
+    log_fp.close()
