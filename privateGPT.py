@@ -29,6 +29,19 @@ target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',4))
 
 from constants import CHROMA_SETTINGS
 
+def augment_prompt(source_knowledge, query):
+    if "I don't know" in source_knowledge:
+        return query
+    
+    augmented_prompt = f"""Using the the contexts below answer the query. If you doon't know the answer, just say that you don't know, don't try to make up an answer, do not use your own knowledge base, just use the information in the context.
+
+    Contexts:
+    {source_knowledge}
+
+    Query: {query}"""
+
+    return augmented_prompt
+
 def main(log_fp):
     # Parse the command line arguments
     args = parse_arguments()
@@ -50,19 +63,19 @@ def main(log_fp):
         if query.strip() == "":
             continue
 
-        answer = llm(query)
-        print(answer)
-        print(answer, file=log_fp)
-
         # Get the answer from the chain
         start = time.time()
         res = qa(query)
         answer, docs = res['result'], [] if args.hide_source else res['source_documents']
         end = time.time()
 
+        prompt = augment_prompt(answer, query)
+        
         # Print the result
-        print("\n\n> Question:")
-        print(query)
+        # print("\n\n> Prompt:")
+        # print(prompt)
+  
+        answer = llm(prompt)
         print(f"\n> Answer (took {round(end - start, 2)} s.):")
         print(answer)
 
