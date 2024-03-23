@@ -29,14 +29,14 @@ target_source_chunks = int(os.environ.get('TARGET_SOURCE_CHUNKS',4))
 
 from constants import CHROMA_SETTINGS
 
-def augment_prompt(source_knowledge, query):
-    if "I don't know" in source_knowledge:
+def augment_prompt(answer, query):
+    if "I don't know" in answer:
         return query
     
-    augmented_prompt = f"""Using the the contexts below answer the query. If you doon't know the answer, just say that you don't know, don't try to make up an answer, do not use your own knowledge base, just use the information in the context.
+    augmented_prompt = f"""Using the the contexts below answer the query. If you don't know the answer, just say that you don't know, don't try to make up an answer, do not use your own knowledge base, just use the information in the context.
 
     Contexts:
-    {source_knowledge}
+    {answer}
 
     Query: {query}"""
 
